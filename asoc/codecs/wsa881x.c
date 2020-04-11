@@ -306,7 +306,7 @@ static ssize_t wsa881x_codec_version_read(struct snd_info_entry *entry,
 		return -EINVAL;
 	}
 
-	len = snprintf(buffer, sizeof(buffer), "WSA881X-SOUNDWIRE_2_0\n");
+	len = scnprintf(buffer, sizeof(buffer), "WSA881X-SOUNDWIRE_2_0\n");
 
 	return simple_read_from_buffer(buf, count, &pos, buffer, len);
 }
@@ -338,7 +338,7 @@ int wsa881x_codec_info_create_codec_entry(struct snd_info_entry *codec_root,
 
 	wsa881x = snd_soc_component_get_drvdata(component);
 	card = component->card;
-	snprintf(name, sizeof(name), "%s.%x", "wsa881x",
+	scnprintf(name, sizeof(name), "%s.%x", "wsa881x",
 		 (u32)wsa881x->swr_slave->addr);
 
 	wsa881x->entry = snd_info_create_subdir(codec_root->module,
@@ -1333,7 +1333,7 @@ static int wsa881x_probe(struct snd_soc_component *component)
 	wsa881x->component = component;
 	mutex_init(&wsa881x->bg_lock);
 	wsa881x_init(component);
-	snprintf(wsa881x->tz_pdata.name, sizeof(wsa881x->tz_pdata.name),
+	scnprintf(wsa881x->tz_pdata.name, sizeof(wsa881x->tz_pdata.name),
 		"%s.%x", "wsatz", (u8)dev->addr);
 	wsa881x->bg_cnt = 0;
 	wsa881x->clk_cnt = 0;
