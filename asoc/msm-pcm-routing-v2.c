@@ -1258,9 +1258,6 @@ static int msm_routing_get_adm_topology(int fedai_id, int session_type,
 	pr_debug("%s: fedai_id %d, session_type %d, be_id %d\n",
 	       __func__, fedai_id, session_type, be_id);
 
-	if (cal_data == NULL)
-		goto done;
-
 	app_type = fe_dai_app_type_cfg[fedai_id][session_type][be_id].app_type;
 	acdb_dev_id =
 		fe_dai_app_type_cfg[fedai_id][session_type][be_id].acdb_dev_id;
@@ -1283,7 +1280,6 @@ static int msm_routing_get_adm_topology(int fedai_id, int session_type,
 			pr_debug("%s: Force using topology %d\n", __func__, topology);
 		}
 	}
-done:
 	pr_debug("%s: Using topology %d\n", __func__, topology);
 	return topology;
 }
@@ -1386,7 +1382,7 @@ static int msm_pcm_loopback_volume_get(struct snd_kcontrol *kcontrol,
 static int msm_pcm_loopback_volume_put(struct snd_kcontrol *kcontrol,
 			       struct snd_ctl_elem_value *ucontrol)
 {
-	pr_info("%s: volume = %d\n", __func__, ucontrol->value.integer.value[0]);
+	pr_info("%s: volume = %ld\n", __func__, ucontrol->value.integer.value[0]);
 
 	if (loopback_map.active) {
 		loopback_map.volume = ucontrol->value.integer.value[0];
@@ -23998,7 +23994,7 @@ static const int mi2s_rx_vi_fb_tx_value[] = {
 };
 
 #ifdef CONFIG_SND_SOC_TFA9874_FOR_DAVI
-static const int const tert_mi2s_rx_vi_fb_tx_value[] = {
+static const int tert_mi2s_rx_vi_fb_tx_value[] = {
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_TERTIARY_MI2S_TX
 };
 #endif
