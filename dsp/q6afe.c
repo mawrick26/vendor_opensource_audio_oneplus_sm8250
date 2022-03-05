@@ -32,10 +32,8 @@
 #define AFE_PARAM_ID_TFADSP_RX_GET_RESULT		(0x1000B922)
 #define AFE_PARAM_ID_TFADSP_RX_SET_BYPASS		(0x1000B923)
 #define AFE_PARAM_ID_TFADSP_RX_SET_HAPTIC_GAIN	(0x1000B98F)
-/*Attention: port_id = AFE_PORT_ID_TERTIARY_MI2S_RX or AFE_PORT_ID_QUATERNARY_MI2S_RX*/
 #define AFE_PORT_ID_TFADSP_RX	(AFE_PORT_ID_TERTIARY_MI2S_RX)
 #define AFE_PORT_ID_TFADSP_TX	(AFE_PORT_ID_TERTIARY_MI2S_TX)
-/*Attention: CONFIG_SND_SOC_TFA9872 or CONFIG_SND_SOC_TFA9874*/
 #endif
 
 #define WAKELOCK_TIMEOUT	5000
@@ -262,14 +260,14 @@ struct afe_ctl {
 	/* FTM spk params */
 	uint32_t initial_cal;
 	uint32_t v_vali_flag;
+#ifdef CONFIG_SND_SOC_TFA9874_OR_HAPTIC
+	struct rtac_cal_block_data tfa_cal;
+	atomic_t tfa_state;
+#endif
 	uint32_t num_spkrs;
 	uint32_t cps_ch_mask;
 	struct afe_cps_hw_intf_cfg *cps_config;
 	int lsm_afe_ports[MAX_LSM_SESSIONS];
-#ifdef CONFIG_SND_SOC_TFA9874_OR_HAPTIC
-	struct rtac_cal_block_data tfa_cal;
-	atomic_t tfa_state;
-#endif /*CONFIG_SND_SOC_TFA9874_OR_HAPTIC*/
 };
 
 struct afe_clkinfo_per_port {
@@ -895,7 +893,7 @@ bool tfa9874_make_afe_callback(uint32_t token, uint32_t *payload,
 
 	return false;
 }
-#endif /*CONFIG_SND_SOC_TFA9874_OR_HAPTIC*/
+#endif
 
 static int32_t afe_callback(struct apr_client_data *data, void *priv)
 {
@@ -973,7 +971,7 @@ static int32_t afe_callback(struct apr_client_data *data, void *priv)
 		if (tfa9874_make_afe_callback(data->token, data->payload,
 					   data->payload_size))
 			return 0;
-#endif /*CONFIG_SND_SOC_TFA9874_OR_HAPTIC*/
+#endif
 
 		if (data->opcode == AFE_PORT_CMDRSP_GET_PARAM_V3)
 			param_id_pos = 4;
@@ -2363,7 +2361,7 @@ static int afe_spk_prot_prepare(int src_port, int dst_port, int param_id,
 		param_info.module_id = AFE_MODULE_ID_TFADSP_TX;
 		break;
 
-#endif	/*CONFIG_SND_SOC_TFA9874_OR_HAPTIC*/
+#endif
 	default:
 		pr_err("%s: default case 0x%x\n", __func__, param_id);
 		goto fail_cmd;
@@ -10727,7 +10725,6 @@ int send_tfa_cal_apr(void *buf, int cmd_size, bool bRead)
 	memset(&param_hdr, 0x00, sizeof(param_hdr));
 
 	if (0 == tfa_cal->map_data.dma_buf ) {
-		/*Minimal chunk size is 4K*/
 		tfa_cal->map_data.map_size = SZ_4K;
 		result = msm_audio_ion_alloc(&(tfa_cal->map_data.dma_buf),
 								tfa_cal->map_data.map_size,
@@ -10767,7 +10764,6 @@ int send_tfa_cal_apr(void *buf, int cmd_size, bool bRead)
 		goto err;
 	}
 
-	/* Pack message header with data */
 	param_hdr.module_id = AFE_MODULE_ID_TFADSP_RX;
 	param_hdr.instance_id = INSTANCE_ID_0;
 	param_hdr.param_size = cmd_size;
@@ -10786,7 +10782,6 @@ int send_tfa_cal_apr(void *buf, int cmd_size, bool bRead)
 		tfa_cal->cal_data.size = cmd_size + sizeof(struct param_hdr_v3) ;
 	}
 
-	/*Send/Get package to/from ADSP*/
 	mem_hdr.data_payload_addr_lsw =
 		lower_32_bits(tfa_cal->cal_data.paddr);
 	mem_hdr.data_payload_addr_msw =
@@ -10827,7 +10822,6 @@ int send_tfa_cal_apr(void *buf, int cmd_size, bool bRead)
 			goto err;
 		}
 		else {
-			/*Copy response data to command buffer*/
 			memcpy(buf,  resp,  cmd_size);
 		}
 	}
@@ -10844,7 +10838,6 @@ void send_tfa_cal_unmap_memory(void)
 	if (this_afe.tfa_cal.map_data.map_handle) {
 		result = afe_unmap_rtac_block(&this_afe.tfa_cal.map_data.map_handle);
 
-		/*Force to remap after unmap failed*/
 		if (result)
 			this_afe.tfa_cal.map_data.map_handle = 0;
 	}
@@ -10913,7 +10906,7 @@ int send_tfa_cal_set_tx_enable(void *buf, int cmd_size)
 	return 0;
 }
 EXPORT_SYMBOL(send_tfa_cal_set_tx_enable);
-#endif /*CONFIG_SND_SOC_TFA9874_OR_HAPTIC*/
+#endif
 
 int __init afe_init(void)
 {

@@ -919,17 +919,10 @@ static struct wcd_mbhc_config wcd_mbhc_cfg = {
 	.mono_stero_detection = false,
 	.swap_gnd_mic = NULL,
 	.hs_ext_micbias = true,
-#if 1
 	.key_code[0] = KEY_MEDIA,
 	.key_code[1] = KEY_VOLUMEUP,
 	.key_code[2] = KEY_VOLUMEDOWN,
 	.key_code[3] = 0,
-#else
-	.key_code[0] = KEY_MEDIA,
-	.key_code[1] = KEY_VOICECOMMAND,
-	.key_code[2] = KEY_VOLUMEUP,
-	.key_code[3] = KEY_VOLUMEDOWN,
-#endif
 	.key_code[4] = 0,
 	.key_code[5] = 0,
 	.key_code[6] = 0,
@@ -5757,7 +5750,6 @@ static void *def_wcd_mbhc_cal(void)
 	btn_high = ((void *)&btn_cfg->_v_btn_low) +
 		(sizeof(btn_cfg->_v_btn_low[0]) * btn_cfg->num_btn);
 
-#if 1
 	btn_high[0] = 70;
 	btn_high[1] = 225;
 	btn_high[2] = 500;
@@ -5766,16 +5758,6 @@ static void *def_wcd_mbhc_cal(void)
 	btn_high[5] = 500;
 	btn_high[6] = 500;
 	btn_high[7] = 500;
-#else
-	btn_high[0] = 75;
-	btn_high[1] = 150;
-	btn_high[2] = 237;
-	btn_high[3] = 500;
-	btn_high[4] = 500;
-	btn_high[5] = 500;
-	btn_high[6] = 500;
-	btn_high[7] = 500;
-#endif
 
 	return wcd_mbhc_cal;
 }
@@ -6426,7 +6408,7 @@ static struct snd_soc_dai_link msm_common_misc_fe_dai_links[] = {
 		.ops = &msm_cdc_dma_be_ops,
 	},
 #if IS_ENABLED(CONFIG_SND_SOC_TFA9894)
-	{/* hw:x,40 */
+	{
 		.name = "Tertiary MI2S RX_Hostless",
 		.stream_name = "Tertiary MI2S_RX Hostless Playback",
 		.cpu_dai_name = "TERT_MI2S_RX_HOSTLESS",

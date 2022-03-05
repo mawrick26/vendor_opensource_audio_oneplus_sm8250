@@ -1279,7 +1279,8 @@ static int msm_routing_get_adm_topology(int fedai_id, int session_type,
 						      acdb_dev_id,
 						      ADM_TOPOLOGY_CAL_TYPE_IDX,
 						      false /*exact*/);
-		if ((topology < 0) || (singlemic_test == 1)) {
+		if ((topology < 0) ||
+			(singlemic_test == 1 && session_type == SESSION_TYPE_TX)) {
 			topology = NULL_COPP_TOPOLOGY;
 			pr_debug("%s: Force using topology %d\n", __func__, topology);
 		}
@@ -24021,7 +24022,7 @@ static const int mi2s_rx_vi_fb_tx_value[] = {
 };
 
 #ifdef CONFIG_SND_SOC_TFA9874_FOR_DAVI
-static const int const tert_mi2s_rx_vi_fb_tx_value[] = {
+static const int tert_mi2s_rx_vi_fb_tx_value[] = {
 	MSM_BACKEND_DAI_MAX, MSM_BACKEND_DAI_TERTIARY_MI2S_TX
 };
 #endif

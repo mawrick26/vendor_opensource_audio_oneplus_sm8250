@@ -414,7 +414,6 @@ int wcd_cancel_lock_sleep_work(struct wcd_mbhc *mbhc)
 
 	return r;
 }
-//EXPORT_SYMBOL(wcd_cancel_lock_sleep_work);
 
 int wcd_btn_press_enable_lock_sleep_work(struct wcd_mbhc *mbhc)
 {
@@ -1092,10 +1091,8 @@ static void wcd_mbhc_usbc_analog_plug_detect_handler(struct wcd_mbhc *mbhc, bool
 		}
 
 	} else if (!detection_type) {
-		/* Disable external voltage source to micbias if present */
 		if (mbhc->mbhc_cb->enable_mb_source)
 			mbhc->mbhc_cb->enable_mb_source(mbhc, false);
-		/* Disable HW FSM */
 		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_FSM_EN, 0);
 		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_BTN_ISRC_CTL, 0);
 		mbhc->extn_cable_hph_rem = false;
@@ -1131,7 +1128,6 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 	WCD_MBHC_RSC_LOCK(mbhc);
 	mbhc->in_swch_irq_handler = true;
 
-	/* cancel pending button press */
 	if (wcd_cancel_btn_work(mbhc))
 		pr_debug("%s: button press is canceled\n", __func__);
 
@@ -1140,7 +1136,6 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 
 	WCD_MBHC_REG_READ(WCD_MBHC_MECH_DETECTION_TYPE, detection_type);
 
-	/* Set the detection type appropriately */
 	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_MECH_DETECTION_TYPE,
 				 !detection_type);
 
@@ -1158,7 +1153,6 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 	else
 		pr_info("%s: hs_detect_plug work not cancelled\n", __func__);
 
-	/* Enable micbias ramp */
 	if (mbhc->mbhc_cb->mbhc_micb_ramp_control)
 		mbhc->mbhc_cb->mbhc_micb_ramp_control(component, true);
 
@@ -1169,13 +1163,9 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 	if ((mbhc->current_plug == MBHC_PLUG_TYPE_NONE) &&
 	    detection_type) {
 
-		/* If moisture is present, then enable polling, disable
-		 * moisture detection and wait for interrupt
-		 */
 		if (wcd_mbhc_moisture_detect(mbhc, detection_type))
 			goto done;
 
-		/* Make sure MASTER_BIAS_CTL is enabled */
 		mbhc->mbhc_cb->mbhc_bias(component, true);
 
 		if (mbhc->mbhc_cb->mbhc_common_micb_ctrl)
@@ -1184,18 +1174,11 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 
 		if (!mbhc->mbhc_cfg->hs_ext_micbias &&
 		     mbhc->mbhc_cb->micb_internal)
-			/*
-			 * Enable Tx2 RBias if the headset
-			 * is using internal micbias
-			 */
 			mbhc->mbhc_cb->micb_internal(component, 1, true);
 
-		/* Remove micbias pulldown */
 		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_PULLDOWN_CTRL, 0);
-		/* Apply trim if needed on the device */
 		if (mbhc->mbhc_cb->trim_btn_reg)
 			mbhc->mbhc_cb->trim_btn_reg(component);
-		/* Enable external voltage source to micbias if present */
 		if (mbhc->mbhc_cb->enable_mb_source)
 			mbhc->mbhc_cb->enable_mb_source(mbhc, true);
 		mbhc->btn_press_intr = false;
@@ -1204,10 +1187,8 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 			mbhc->mbhc_fn->wcd_mbhc_detect_plug_type(mbhc);
 	} else if ((mbhc->current_plug != MBHC_PLUG_TYPE_NONE)
 			&& !detection_type) {
-		/* Disable external voltage source to micbias if present */
 		if (mbhc->mbhc_cb->enable_mb_source)
 			mbhc->mbhc_cb->enable_mb_source(mbhc, false);
-		/* Disable HW FSM */
 		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_FSM_EN, 0);
 		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_BTN_ISRC_CTL, 0);
 		if (mbhc->mbhc_cb->mbhc_common_micb_ctrl)
@@ -1227,11 +1208,9 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 			jack_type = SND_JACK_UNSUPPORTED;
 			break;
 		case MBHC_PLUG_TYPE_HEADSET:
-			/* make sure to turn off Rbias */
 			if (mbhc->mbhc_cb->micb_internal)
 				mbhc->mbhc_cb->micb_internal(component,
 							1, false);
-			/* Pulldown micbias */
 			WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_PULLDOWN_CTRL, 1);
 			jack_type = SND_JACK_HEADSET;
 			break;
@@ -1366,7 +1345,6 @@ static void wcd_btn_lpress_fn(struct work_struct *work)
 	}
 	pr_debug("%s: leave\n", __func__);
 	if (mbhc->st_state && !mbhc->st_lpress_lock_sleep) {
-		//wcd_cancel_lock_sleep_work(mbhc);
 		pr_info("%s: enable lock sleep\n", __func__);
 		mbhc->st_lpress_lock_sleep = true;
 	} else {
@@ -1897,7 +1875,6 @@ static void wcd_mbhc_usbc_ana_detect_work_fn(struct work_struct *work)
 	if (mode.intval == POWER_SUPPLY_TYPEC_SINK_AUDIO_ADAPTER) {
 		if (mbhc->mbhc_cb->clk_setup)
 			mbhc->mbhc_cb->clk_setup(mbhc->component, true);
-		/* insertion detected, enable L_DET_EN */
 		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_L_DET_EN, 1);
 
 		if (mbhc->use_usbc_detect)
@@ -2073,7 +2050,6 @@ int wcd_mbhc_init(struct wcd_mbhc *mbhc, struct snd_soc_component *component,
 	const char *gnd_switch = "qcom,msm-mbhc-gnd-swh";
 	const char *hs_thre = "qcom,msm-mbhc-hs-mic-max-threshold-mv";
 	const char *hph_thre = "qcom,msm-mbhc-hs-mic-min-threshold-mv";
-	// add for use usbc mode to judge the cable status
 	bool use_usbc_det = false;
 
 	pr_debug("%s: enter\n", __func__);
